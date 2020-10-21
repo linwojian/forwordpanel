@@ -27,8 +27,6 @@ public class SSHCommandExecutor {
 
     private String password;
 
-    private String privateKeyPath;
-
     public int  port = 34204;
 
     private Vector<String> stdout;
@@ -62,7 +60,6 @@ public class SSHCommandExecutor {
         this.ipAddress = server.getHost();
         this.port = server.getPort();
         this.username = username;
-        this.privateKeyPath = privateKeyPath;
         stdout = new Vector<>();
     }
 
@@ -113,13 +110,14 @@ public class SSHCommandExecutor {
      * @param script
      * @return
      */
-    public void executeScript(final String script) {
+    public void executeScript(final String script, String... args) {
         try {
             List<String> commandList = new ArrayList<>();
             ClassPathResource resource = new ClassPathResource("scripts/" + script);
             BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream()));
             String str;
             while ((str = br.readLine()) != null) {
+                str = String.format(str, args);
                 commandList.add(str);
             }
             execute(commandList.toArray(new String[]{}));

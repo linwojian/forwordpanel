@@ -44,6 +44,7 @@ public class RemoteForwardService {
      */
     public void addForward(Server server,String remoteHost,  Integer remotePort,  Integer localPort) {
         SSHCommandExecutor sshExecutor = getSshExecutor(server);
+        long p1 = System.currentTimeMillis();
         stopForward(server, remoteHost, remotePort, localPort);
         sshExecutor.execute((String.format("ip -o -4 addr list | grep -Ev '\\s(docker|lo)' | awk '{print $4}' | cut -d/ -f1 | grep -Ev '(^127\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$)|(^10\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$)|(^172\\.1[6-9]{1}[0-9]{0,1}\\.[0-9]{1,3}\\.[0-9]{1,3}$)|(^172\\.2[0-9]{1}[0-9]{0,1}\\.[0-9]{1,3}\\.[0-9]{1,3}$)|(^172\\.3[0-1]{1}[0-9]{0,1}\\.[0-9]{1,3}\\.[0-9]{1,3}$)|(^192\\.168\\.[0-9]{1,3}\\.[0-9]{1,3}$)'", localPort, remoteHost, remotePort)));
         String localIp = sshExecutor.getResult();
@@ -51,19 +52,25 @@ public class RemoteForwardService {
             sshExecutor.execute((String.format("ip -o -4 addr list | grep -Ev '\\s(docker|lo)' | awk '{print $4}' | cut -d/ -f1|head -n 1", localPort, remoteHost, remotePort)));
             localIp = sshExecutor.getResult();
         }
+        long p2 = System.currentTimeMillis();
+        log.info(">>>> token1 {}", p2-p1);
         sshExecutor.executeScript("turnOnNat.sh");
         sshExecutor.execute(
-                (String.format("iptables -t nat -A PREROUTING -p tcp --dport %d -j DNAT --to-destination %s:%d", localPort, remoteHost, remotePort)),
-                (String.format("iptables -t nat -A PREROUTING -p udp --dport %d -j DNAT --to-destination %s:%d", localPort, remoteHost, remotePort)),
-                (String.format("iptables -t nat -A POSTROUTING -p tcp -d %s --dport %d -j SNAT --to-source %s", remoteHost, remotePort, localIp)),
-                (String.format("iptables -t nat -A POSTROUTING -p udp -d %s --dport %d -j SNAT --to-source %s", remoteHost, remotePort, localIp)),
-                (String.format("iptables -n -v -L -t filter -x | grep %s | awk '{print $2}'", remoteHost))
+                String.format("iptables -t nat -A PREROUTING -p tcp --dport %d -j DNAT --to-destination %s:%d", localPort, remoteHost, remotePort),
+                String.format("iptables -t nat -A PREROUTING -p udp --dport %d -j DNAT --to-destination %s:%d", localPort, remoteHost, remotePort),
+                String.format("iptables -t nat -A POSTROUTING -p tcp -d %s --dport %d -j SNAT --to-source %s", remoteHost, remotePort, localIp),
+                String.format("iptables -t nat -A POSTROUTING -p udp -d %s --dport %d -j SNAT --to-source %s", remoteHost, remotePort, localIp),
+                String.format("iptables -n -v -L -t filter -x | grep %s | awk '{print $2}'", remoteHost)
         );
+        long p3 = System.currentTimeMillis();
+        log.info(">>>> token2 {}", p3-p2);
         String flow = sshExecutor.getResult();
         log.info("fow: {}", flow);
         if (StringUtils.isEmpty(flow)) {
             sshExecutor.execute((String.format("iptables -I FORWARD -s %s", remoteHost)));
         }
+        long p4 = System.currentTimeMillis();
+        log.info(">>>> token3 {}", p4-p3);
     }
 
 
@@ -163,42 +170,7 @@ public class RemoteForwardService {
      */
     public void stopForward(Server server, String remoteHost, Integer remotePort, Integer localPort) {
         SSHCommandExecutor sshExecutor = getSshExecutor(server);
-        sshExecutor.execute(String.format("iptables -L PREROUTING -n -t nat --line-number |grep DNAT|grep \"dpt:%d \"|sort -r|awk '{print $1,$3,$9}'|tr \" \" \":\"|tr \"\\n\" \" \"", localPort));
-        String dnatStr = sshExecutor.getResult();
-        log.info(dnatStr);
-        dnatStr.trim();
-        if (StringUtils.isEmpty(dnatStr)) {
-            return;
-        }
-        String[] dnatList = dnatStr.split(" ");
-        log.info(JSON.toJSONString(dnatList));
-        for (String item : dnatList) {
-            item = item.trim();
-            if (StringUtils.isEmpty(item)) {
-                continue;
-            }
-            String[] itemList = item.split(":");
-            log.info(JSON.toJSONString(itemList));
-            sshExecutor.execute(String.format("iptables -t nat  -D PREROUTING %s", itemList[0]));
-            sshExecutor.execute(String.format("iptables -L POSTROUTING -n -t nat --line-number|grep SNAT|grep %s|grep dpt:%s|grep %s|awk  '{print $1}'|sort -r|tr \"\\n\" \" \"", itemList[3], itemList[4], itemList[1]));
-            String snatStr = sshExecutor.getResult();
-            if (StringUtils.isEmpty(snatStr)) {
-                continue;
-            }
-            snatStr = snatStr.trim();
-            if (StringUtils.isEmpty(snatStr)) {
-                continue;
-            }
-            String[] snatList = snatStr.split(" ");
-            log.info(JSON.toJSONString(snatList));
-            for (String s : snatList) {
-                if (StringUtils.isEmpty(s)) {
-                    continue;
-                }
-                sshExecutor.execute("iptables -t nat  -D POSTROUTING " + s);
-            }
-        }
-
+        sshExecutor.executeScript("stopForward.sh", localPort.toString());
     }
 
     private String getForwardKey(String remoteHost, Integer remotePort, Integer localPort) {

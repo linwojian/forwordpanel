@@ -539,3 +539,27 @@ CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NO
 2020-10-19 23:41:08 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
 CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:06:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:26:33 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:28:44 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:38:04 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:42:17 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:42:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:44:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]
+2020-10-21 08:46:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "SYS_USER" already exists; SQL statement:
+CREATE TABLE sys_user ( id int NOT NULL AUTO_INCREMENT , username varchar(50) NOT NULL, password varchar(250) DEFAULT NULL , user_phone varchar(11) , telegram varchar(11) , reg_time DATE , data_limit BIGINT, expire_time DATE, data_usage BIGINT, user_type INTEGER NOT NULL DEFAULT 1, disabled BOOLEAN , deleted BOOLEAN ) [42101-200]

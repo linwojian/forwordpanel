@@ -261,7 +261,7 @@ public class UserPortForwardService {
                 .eq(UserPortForward::getPortId, userPortForward.getPortId()).eq(UserPortForward::getDeleted, false);
         UserPortForward portForward = userPortForwardDao.selectOne(queryWrapper);
         //收集之前的流量
-        forwardFlowService.collectForwardFlow(Lists.newArrayList(portForward));
+//        forwardFlowService.collectForwardFlow(Lists.newArrayList(portForward));
         if (!portForward.getDisabled()) {
             //停止中转
             Port port = portDao.selectById(portForward.getPortId());
