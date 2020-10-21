@@ -1,19 +1,19 @@
 package com.leeroy.forwordpanel.forwordpanel.common.util.remotessh;
 
-import com.jcraft.jsch.*;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import com.leeroy.forwordpanel.forwordpanel.model.Server;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ClassPathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ResourceUtils;
-import org.springframework.web.servlet.resource.PathResourceResolver;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.Vector;
 
 /**
@@ -34,6 +34,8 @@ public class SSHCommandExecutor {
     public String getIpAddress() {
         return ipAddress;
     }
+
+    private Session session;
 
     public int getPort() {
         return port;
@@ -63,16 +65,19 @@ public class SSHCommandExecutor {
         stdout = new Vector<>();
     }
 
+
     public int execute(final String... commandList) {
         stdout.clear();
         int returnCode = 0;
         JSch jsch = new JSch();
         MyUserInfo userInfo = new MyUserInfo();
         try {
-            Session session = jsch.getSession(username, ipAddress, port);
-            session.setPassword(password);
-            session.setUserInfo(userInfo);
-            session.connect();
+            if(session==null||!session.isConnected()) {
+                session = jsch.getSession(username, ipAddress, port);
+                session.setPassword(password);
+                session.setUserInfo(userInfo);
+                session.connect();
+            }
             for (String command : commandList) {
                 // Create and connect channel.
                 Channel channel = session.openChannel("exec");
@@ -96,14 +101,13 @@ public class SSHCommandExecutor {
                 // Disconnect the channel and session.
                 channel.disconnect();
             }
-
-            session.disconnect();
         } catch (Exception e) {
             log.error("执行shell失败", e);
         }
         log.info("shell result: {}", StringUtils.join(stdout));
         return returnCode;
     }
+
 
     /**
      * 执行脚本
