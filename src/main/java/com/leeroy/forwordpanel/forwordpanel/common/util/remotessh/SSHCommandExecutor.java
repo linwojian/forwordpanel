@@ -102,6 +102,17 @@ public class SSHCommandExecutor {
                 channel.disconnect();
             }
         } catch (Exception e) {
+            if ("session is down".equals(e.getMessage())) {
+                try {
+                    //重新连接
+                    session = jsch.getSession(username, ipAddress, port);
+                    session.setPassword(password);
+                    session.setUserInfo(userInfo);
+                    session.connect();
+                } catch (Exception e1) {
+                    log.error("session获取失败", e1);
+                }
+            }
             log.error("执行shell失败", e);
         }
         log.info("shell result: {}", StringUtils.join(stdout));
