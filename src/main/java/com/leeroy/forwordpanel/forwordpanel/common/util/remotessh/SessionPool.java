@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @program: forwordpanel
@@ -18,7 +19,7 @@ import java.util.*;
 @Slf4j
 public class SessionPool {
 
-    private  final Map<Server, LinkedList<Session>> sessionPoolMap = new LinkedHashMap<>();
+    private  final Map<Integer, LinkedList<Session>> sessionPoolMap = new ConcurrentHashMap<>();
 
     private  Integer sessionMaxSize = 5;
 
@@ -32,10 +33,10 @@ public class SessionPool {
      * @return
      */
     public synchronized Session getSession() {
-        LinkedList<Session> sessionPool = sessionPoolMap.get(server);
+        LinkedList<Session> sessionPool = sessionPoolMap.get(server.getId());
         if (sessionPool == null) {
             sessionPool = new LinkedList<>();
-            sessionPoolMap.put(server, sessionPool);
+            sessionPoolMap.put(server.getId(), sessionPool);
         }
         if (CollectionUtils.isEmpty(sessionPool)) {
             Session session = makeSession();
@@ -58,9 +59,14 @@ public class SessionPool {
      * @param session
      */
     public void release(Session session) {
-        LinkedList<Session> sessionPool = sessionPoolMap.get(server);
-        sessionPool.addFirst(session);
-        log.info(">>>>release session server {} session pool size {}", server.getServerName(), sessionPool.size());
+        try {
+            LinkedList<Session> sessionPool = sessionPoolMap.get(server.getId());
+            sessionPool.addFirst(session);
+            log.info(">>>>release session server {} session pool size {}", server.getServerName(), sessionPool.size());
+        }catch (Exception e){
+            log.error("错误",e);
+        }
+
     }
 
     /**
@@ -80,6 +86,12 @@ public class SessionPool {
             return true;
         } catch (Throwable t) {
             log.info("Session terminated. Create a new one.");
+            try {
+                session.disconnect();
+            }catch (Exception e){
+                log.info("Session disconnect");
+            }
+
         }
         return false;
     }
@@ -95,6 +107,9 @@ public class SessionPool {
             Session session = jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
             session.setPassword(server.getPassword());
             session.setUserInfo(userInfo);
+            session.setDaemonThread(true);
+            session.setTimeout(3600000);
+            session.setServerAliveInterval(60000);
             session.connect();
             return session;
         } catch (Exception e) {

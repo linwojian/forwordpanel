@@ -112,7 +112,7 @@ public class RemoteForwardService {
      */
     public void resetFlowCount(Server server, String remoteHost, Integer remotePort) {
         SSHCommandExecutor sshExecutor = getSshExecutor(server);
-        sshExecutor.execute(String.format("iptables -D FORWARD -s %s", remoteHost), String.format("iptables -I FORWARD -s %s", remoteHost));
+        sshExecutor.execute(String.format("flowCount=(`iptables -n -v -L -t filter -x | grep %s |wc -l`);for((i=1;i<=$flowCount;i++));do iptables -D FORWARD -s @remoteIp;done;iptables -I FORWARD -s %s", remoteHost,remoteHost));
     }
 
     /**
