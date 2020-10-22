@@ -22,7 +22,7 @@ public class SessionPool {
 
     private  Integer sessionMaxSize = 5;
 
-    private Server server = null;
+    private Server server;
 
 
 
