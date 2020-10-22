@@ -185,4 +185,20 @@ public class ServerService {
         return ApiResponse.ok();
     }
 
+    /**
+     * 删除clash
+     */
+    public ApiResponse check(Integer id) {
+        Server server = serverDao.selectById(id);
+        String response = remoteForwardService.getLastRestart(server);
+        if(StringUtils.isEmpty(response)){
+            server.setState(ServerStatusEnum.CONNECT_FAIL.getCode());
+        }else {
+            server.setLastRebootTime(response);
+            server.setState(ServerStatusEnum.ONLINE.getCode());
+        }
+        serverDao.updateById(server);
+        return ApiResponse.ok();
+    }
+
 }

@@ -75,16 +75,12 @@ public class UserPortForwardService {
                     .eq(UserPortForward::getDeleted, false)
             .eq(UserPortForward::getUserId, pageRequest.getUserId()==null?userId:pageRequest.getUserId())
             .eq(UserPortForward::getServerId, pageRequest.getServerId())
-                    .orderByDesc(UserPortForward::getRemoteHost)
-                    .orderByAsc(UserPortForward::getDisabled)
                     .orderByDesc(UserPortForward::getCreateTime)
             ;
         } else {
             queryWrapper = Wrappers.<UserPortForward>lambdaQuery().eq(UserPortForward::getUserId, userId)
                     .eq(UserPortForward::getServerId, pageRequest.getServerId())
                     .eq(UserPortForward::getDeleted, false)
-                    .orderByDesc(UserPortForward::getRemoteHost)
-                    .orderByAsc(UserPortForward::getDisabled)
                     .orderByDesc(UserPortForward::getCreateTime);
         }
         Page page = PageHelper.startPage(pageRequest.getPageNum(), pageRequest.getPageSize());

@@ -57,5 +57,11 @@ public class ServerController {
         return serverService.delete(id);
     }
 
+    @ResponseBody
+    @GetMapping("check")
+    public ApiResponse check(Integer id) {
+        return serverService.check(id);
+    }
+
 
 }
