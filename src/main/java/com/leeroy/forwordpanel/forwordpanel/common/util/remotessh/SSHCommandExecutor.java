@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -35,7 +36,7 @@ public class SSHCommandExecutor {
         return ipAddress;
     }
 
-    private Session session;
+    private SessionPool sessionPool;
 
     public int getPort() {
         return port;
@@ -48,13 +49,14 @@ public class SSHCommandExecutor {
         stdout = new Vector<>();
     }
 
-    public SSHCommandExecutor(Server server) {
+    public SSHCommandExecutor(Server server, SessionPool sessionPool) {
         this.ipAddress = server.getHost();
         this.port = server.getPort();
         this.username = server.getUsername();
 //        this.privateKeyPath = server.getPassword();
         this.password = server.getPassword();
         stdout = new Vector<>();
+        this.sessionPool = sessionPool;
     }
 
 
@@ -71,12 +73,12 @@ public class SSHCommandExecutor {
         int returnCode = 0;
         JSch jsch = new JSch();
         MyUserInfo userInfo = new MyUserInfo();
+        Session session = null;
         try {
-            if(session==null||!session.isConnected()) {
-                session = jsch.getSession(username, ipAddress, port);
-                session.setPassword(password);
-                session.setUserInfo(userInfo);
-                session.connect();
+            session = sessionPool.getSession();
+            if (session == null) {
+                log.error("session 获取失败");
+                return 0;
             }
             for (String command : commandList) {
                 // Create and connect channel.
@@ -102,37 +104,38 @@ public class SSHCommandExecutor {
                 channel.disconnect();
             }
         } catch (Exception e) {
-            if ("session is down".equals(e.getMessage())) {
-                try {
-                    //重新连接
-                    session = jsch.getSession(username, ipAddress, port);
-                    session.setPassword(password);
-                    session.setUserInfo(userInfo);
-                    session.connect();
-                } catch (Exception e1) {
-                    log.error("session获取失败", e1);
-                }
-            }
             log.error("执行shell失败", e);
+        }finally {
+            if(session!=null){
+                sessionPool.release(session);
+            }
         }
         log.info("shell result: {}", StringUtils.join(stdout));
         return returnCode;
     }
 
 
+    public void executeScript(final String script){
+        executeScript(script, null);
+    }
+
     /**
      * 执行脚本
      * @param script
      * @return
      */
-    public void executeScript(final String script, String... args) {
+    public void executeScript(final String script, Map<String, String> paramMap) {
         try {
             List<String> commandList = new ArrayList<>();
             ClassPathResource resource = new ClassPathResource("scripts/" + script);
             BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream()));
             String str;
             while ((str = br.readLine()) != null) {
-                str = String.format(str, args);
+                if(paramMap!=null){
+                    for (Map.Entry<String, String> stringEntry : paramMap.entrySet()) {
+                        str = str.replaceAll(stringEntry.getKey(), stringEntry.getValue());
+                    }
+                }
                 commandList.add(str);
             }
             execute(commandList.toArray(new String[]{}));

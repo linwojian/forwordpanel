@@ -42,7 +42,6 @@ public class KeepForwardJob {
         log.info(">>>>开始执行中转机重启检查任务");
         List<Server> serviceList = serverService.findListWithoutLogin();
         for (Server server : serviceList) {
-            remoteForwardService.checkIPV4Forward(server);
             String lastRestart = remoteForwardService.getLastRestart(server);
             log.info(">>>>服务器:{} 当前重启时间:{}, 记录重启时间:{}", server.getServerName(), lastRestart, server.getLastRebootTime());
             if(StringUtils.isEmpty(lastRestart)){

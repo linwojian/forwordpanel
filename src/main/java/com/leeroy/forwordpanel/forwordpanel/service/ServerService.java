@@ -86,7 +86,6 @@ public class ServerService {
      */
     public void testConnect(Server server){
         executorService.execute(() -> {
-            remoteForwardService.checkIPV4Forward(server);
             String response = remoteForwardService.getLastRestart(server);
             if(StringUtils.isEmpty(response)){
                 server.setState(ServerStatusEnum.CONNECT_FAIL.getCode());
