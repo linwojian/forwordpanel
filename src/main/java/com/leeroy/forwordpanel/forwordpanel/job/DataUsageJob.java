@@ -31,7 +31,7 @@ public class DataUsageJob {
     private ForwardFlowService forwardFlowService;
 
 
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void execute() {
         List<User> expireUserList = userService.findEnableUserList();
         expireUserList.forEach(user -> {

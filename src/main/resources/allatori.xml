@@ -1,0 +1,18 @@
+<config>
+    <input>
+        <jar in="forwordpanel-1.0.7-SNAPSHOT.jar" out="forwordpanel-1.0.7-SNAPSHOT-obfuscated.jar"/>
+    </input>
+
+    <keep-names>
+        <class access="protected+">
+            <field access="protected+"/>
+            <method access="protected+"/>
+        </class>
+    </keep-names>
+    <ignore-classes>
+        <class template="class  com.leeroy.forwordpanel.forwordpanel.ForwordpanelApplication"/>
+        <class template="class  com.leeroy.forwordpanel.forwordpanel.dto.*"/>
+    </ignore-classes>
+
+    <property name="log-file" value="log.xml"/>
+</config>

@@ -90,10 +90,6 @@ public class ForwardFlowService {
             forwardFlow.setDataUsage(Long.valueOf(dataUsage));
             saveFlow(forwardFlow);
         }
-        for (UserPortForward userPortForward : userForwardList) {
-            Server server = serverDao.selectById(userPortForward.getServerId());
-            remoteForwardService.resetFlowCount(server, userPortForward.getRemoteIp(), userPortForward.getRemotePort());
-        }
     }
 
     /**

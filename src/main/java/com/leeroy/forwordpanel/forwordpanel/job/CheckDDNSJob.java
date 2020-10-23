@@ -34,7 +34,7 @@ public class CheckDDNSJob {
     @Autowired
     private UserPortForwardService userPortForwardService;
 
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void execute() {
         List<UserPortForward> userPortForwards = userPortForwardService.getUsingForwards();
         for(UserPortForward forward: userPortForwards){

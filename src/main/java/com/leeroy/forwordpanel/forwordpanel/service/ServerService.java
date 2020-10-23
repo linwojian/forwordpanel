@@ -68,14 +68,13 @@ public class ServerService {
             testConnect(server);
         } else {
             Server existPort = serverDao.selectById(server.getId());
-            String password = StringUtils.isEmpty(server.getPassword())?existPort.getPassword():server.getPassword();
+            String password = StringUtils.isEmpty(server.getPassword()) ? existPort.getPassword() : server.getPassword();
             BeanUtils.copyProperties(server, existPort);
             existPort.setUpdateTime(new Date());
             existPort.setState(ServerStatusEnum.INIT.getCode());
             serverDao.updateById(existPort);
             existPort.setPassword(password);
             testConnect(existPort);
-
         }
         return ApiResponse.ok();
     }

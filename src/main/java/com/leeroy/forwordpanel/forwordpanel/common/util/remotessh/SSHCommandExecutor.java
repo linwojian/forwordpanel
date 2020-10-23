@@ -30,7 +30,6 @@ public class SSHCommandExecutor {
 
     public int  port = 34204;
 
-    private Vector<String> stdout;
 
     public String getIpAddress() {
         return ipAddress;
@@ -46,7 +45,6 @@ public class SSHCommandExecutor {
         this.ipAddress = ipAddress;
         this.username = username;
         this.password = password;
-        stdout = new Vector<>();
     }
 
     public SSHCommandExecutor(Server server, SessionPool sessionPool) {
@@ -55,7 +53,6 @@ public class SSHCommandExecutor {
         this.username = server.getUsername();
 //        this.privateKeyPath = server.getPassword();
         this.password = server.getPassword();
-        stdout = new Vector<>();
         this.sessionPool = sessionPool;
     }
 
@@ -64,21 +61,18 @@ public class SSHCommandExecutor {
         this.ipAddress = server.getHost();
         this.port = server.getPort();
         this.username = username;
-        stdout = new Vector<>();
     }
 
 
-    public int execute(final String... commandList) {
-        stdout.clear();
+    public Vector<String> execute(final String... commandList) {
+        Vector<String> stdout = new Vector<>();
         int returnCode = 0;
-        JSch jsch = new JSch();
-        MyUserInfo userInfo = new MyUserInfo();
         Session session = null;
         try {
             session = sessionPool.getSession();
             if (session == null) {
                 log.error("session 获取失败");
-                return 0;
+                return stdout;
             }
             for (String command : commandList) {
                 // Create and connect channel.
@@ -105,13 +99,13 @@ public class SSHCommandExecutor {
             }
         } catch (Exception e) {
             log.error("执行shell失败", e);
-        }finally {
-            if(session!=null){
+        } finally {
+            if (session != null) {
                 sessionPool.release(session);
             }
         }
         log.info("shell result: {}", StringUtils.join(stdout));
-        return returnCode;
+        return stdout;
     }
 
 
@@ -144,22 +138,16 @@ public class SSHCommandExecutor {
         }
     }
 
-    public Vector<String> getResultSet() {
-        return stdout;
-    }
 
-    public String getResult() {
-        return CollectionUtils.isEmpty(stdout) ? "" : stdout.get(0);
-    }
 
     public static void main(final String[] args) {
         SSHCommandExecutor sshExecutor = new SSHCommandExecutor("120.241.154.4", "root", "28L8CegNk9");
         long stsart = System.currentTimeMillis();
         sshExecutor.execute("netstat -tunlp", "netstat -tunlp", "netstat -tunlp", "netstat -tunlp");
-        Vector<String> stdout = sshExecutor.getResultSet();
-        for (String str : stdout) {
-            System.out.println(str);
-        }
+//        Vector<String> stdout = sshExecutor.getResultSet();
+//        for (String str : stdout) {
+//            System.out.println(str);
+//        }
         System.out.println(System.currentTimeMillis() - stsart);
     }
 }

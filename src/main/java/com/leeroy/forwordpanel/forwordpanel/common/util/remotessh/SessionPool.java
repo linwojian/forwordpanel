@@ -9,6 +9,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * @program: forwordpanel
@@ -19,12 +20,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SessionPool {
 
-    private  final Map<Integer, LinkedList<Session>> sessionPoolMap = new ConcurrentHashMap<>();
+    private  final Map<Integer, ConcurrentLinkedDeque<Session>> sessionPoolMap = new ConcurrentHashMap<>();
 
     private  Integer sessionMaxSize = 5;
 
     private Server server;
 
+    private Integer makeSize = 0;
+    private Integer releaseSize = 0;
 
 
     /**
@@ -33,9 +36,9 @@ public class SessionPool {
      * @return
      */
     public synchronized Session getSession() {
-        LinkedList<Session> sessionPool = sessionPoolMap.get(server.getId());
+        ConcurrentLinkedDeque<Session> sessionPool = sessionPoolMap.get(server.getId());
         if (sessionPool == null) {
-            sessionPool = new LinkedList<>();
+            sessionPool = new ConcurrentLinkedDeque<>();
             sessionPoolMap.put(server.getId(), sessionPool);
         }
         if (CollectionUtils.isEmpty(sessionPool)) {
@@ -45,7 +48,7 @@ public class SessionPool {
         if (CollectionUtils.isEmpty(sessionPool)) {
             return null;
         }
-        Session session = sessionPool.removeLast();
+        Session session = sessionPool.pollLast();
         log.info(">>>>get session server {} session pool size {}", server.getServerName(), sessionPool.size());
         if (!session.isConnected() || !testSession(session)) {
             log.error("session失效, 重新make session");
@@ -58,10 +61,12 @@ public class SessionPool {
      * 释放session
      * @param session
      */
-    public void release(Session session) {
+    public synchronized void release(Session session) {
         try {
-            LinkedList<Session> sessionPool = sessionPoolMap.get(server.getId());
-            sessionPool.addFirst(session);
+            releaseSize++;
+            log.error(">>>> release times:{}", releaseSize);
+            ConcurrentLinkedDeque<Session> sessionPool = sessionPoolMap.get(server.getId());
+            sessionPool.push(session);
             log.info(">>>>release session server {} session pool size {}", server.getServerName(), sessionPool.size());
         }catch (Exception e){
             log.error("错误",e);
@@ -102,6 +107,8 @@ public class SessionPool {
      */
     private Session makeSession() {
         try {
+            makeSize++;
+            log.error(">>>> make times:{}", makeSize);
             JSch jsch = new JSch();
             MyUserInfo userInfo = new MyUserInfo();
             Session session = jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
@@ -111,6 +118,7 @@ public class SessionPool {
             session.setTimeout(3600000);
             session.setServerAliveInterval(60000);
             session.connect();
+            log.error(">>>> make session");
             return session;
         } catch (Exception e) {
             log.error("make session error, server is{} ", server.getServerName());
@@ -125,15 +133,21 @@ public class SessionPool {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                for (LinkedList<Session> sessionLinkedList : sessionPoolMap.values()) {
+                for (ConcurrentLinkedDeque<Session> sessionLinkedList : sessionPoolMap.values()) {
                     if (sessionLinkedList.size() > sessionMaxSize) {
                         log.info(">>>> session pool size over {} clean", sessionMaxSize);
                         for (int i = 0; i < sessionLinkedList.size() - sessionMaxSize; i++) {
-                            sessionLinkedList.removeLast();
+                            Session session = sessionLinkedList.removeLast();
+                            try {
+                                session.disconnect();
+                            }catch (Exception e){
+                                log.error("session 释放失败", e);
+                            }
+
                         }
                     }
                 }
             }
-        }, 1000 * 60 * 3, 1000 * 60 * 5);
+        }, 1000 * 60 * 3, 1000 * 60 * 1);
     }
 }

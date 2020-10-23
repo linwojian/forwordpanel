@@ -5,6 +5,7 @@ import com.leeroy.forwordpanel.forwordpanel.common.util.remotessh.SessionPool;
 import com.leeroy.forwordpanel.forwordpanel.model.Server;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
@@ -17,18 +18,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class RemoteForwardService {
 
-    private Map<Server, SSHCommandExecutor> sshCommandExecutorMap = new ConcurrentHashMap<>();
+    private Map<String, SSHCommandExecutor> sshCommandExecutorMap = new ConcurrentHashMap<>();
 
     /**
      * 获取sshExecutor
      * @param server
      * @return
      */
-    public SSHCommandExecutor getSshExecutor(Server server) {
-        SSHCommandExecutor sshCommandExecutor = sshCommandExecutorMap.get(server);
+    public synchronized SSHCommandExecutor getSshExecutor(Server server) {
+        SSHCommandExecutor sshCommandExecutor = sshCommandExecutorMap.get(server.getHost());
         if(sshCommandExecutor==null){
             sshCommandExecutor = new SSHCommandExecutor(server, new SessionPool(server));
-            sshCommandExecutorMap.put(server, sshCommandExecutor);
+            sshCommandExecutorMap.put(server.getHost(), sshCommandExecutor);
         }
         return sshCommandExecutor;
     }
@@ -62,11 +63,11 @@ public class RemoteForwardService {
      */
     public String getPortFlow(Server server, String remoteHost, Integer remotePort) {
         SSHCommandExecutor sshExecutor = getSshExecutor(server);
-        if(StringUtils.isEmpty(remoteHost)){
+        if (StringUtils.isEmpty(remoteHost)) {
             return "0";
         }
-        sshExecutor.execute(String.format("iptables -n -v -L -t filter -x | grep %s | awk '{print $2}'", remoteHost));
-        String result = sshExecutor.getResult();
+        Vector<String> stdout = sshExecutor.execute(String.format("iptables -n -v -L -t filter -x | grep %s | awk '{print $2}'", remoteHost));
+        String result = CollectionUtils.isEmpty(stdout) ? "" : stdout.get(0);
         result = result.replaceAll("\n", "");
         log.info("flow:{}", result);
         return StringUtils.isEmpty(result) ? "0" : result;
@@ -87,12 +88,11 @@ public class RemoteForwardService {
             if(StringUtils.isEmpty(remoteHost)){
                 resultMap.put(remoteHost, "0");
             }else {
-                commandList.put(remoteHost,String.format("iptables -n -v -L -t filter -x | grep %s | awk '{print $2}'", remoteHost));
+                commandList.put(remoteHost,String.format("iptables -n -v -L -t filter -x | grep %s | awk '{print $2}'", remoteHost)+";"+"flowCount=(`iptables -n -v -L -t filter -x | grep @remoteIp |wc -l`);for((i=1;i<=$flowCount;i++));do iptables -D FORWARD -s @remoteIp;done;iptables -I FORWARD -s @remoteIp".replaceAll("@remoteIp", remoteHost));
             }
         }
 
-        sshExecutor.execute(commandList.values().toArray(new String[]{}));
-        Vector<String> resultSet = sshExecutor.getResultSet();
+        Vector<String> resultSet = sshExecutor.execute(commandList.values().toArray(new String[]{}));
         try {
             for (int i = 0; i < resultSet.size(); i++) {
                 resultMap.put((String) commandList.keySet().toArray()[i],resultSet.get(i));
@@ -112,7 +112,7 @@ public class RemoteForwardService {
      */
     public void resetFlowCount(Server server, String remoteHost, Integer remotePort) {
         SSHCommandExecutor sshExecutor = getSshExecutor(server);
-        sshExecutor.execute(String.format("flowCount=(`iptables -n -v -L -t filter -x | grep %s |wc -l`);for((i=1;i<=$flowCount;i++));do iptables -D FORWARD -s @remoteIp;done;iptables -I FORWARD -s %s", remoteHost,remoteHost));
+        sshExecutor.execute("flowCount=(`iptables -n -v -L -t filter -x | grep @remoteIp |wc -l`);for((i=1;i<=$flowCount;i++));do iptables -D FORWARD -s @remoteIp;done;iptables -I FORWARD -s @remoteIp".replaceAll("@remoteIp", remoteHost));
     }
 
     /**
@@ -120,10 +120,10 @@ public class RemoteForwardService {
       * @param server
      * @return
      */
-    public String getLastRestart(Server server){
+    public String getLastRestart(Server server) {
         SSHCommandExecutor sshExecutor = getSshExecutor(server);
-        sshExecutor.execute("who -b");
-        return sshExecutor.getResult();
+        Vector<String> stdout = sshExecutor.execute("who -b");
+        return CollectionUtils.isEmpty(stdout) ? "" : stdout.get(0);
     }
 
 

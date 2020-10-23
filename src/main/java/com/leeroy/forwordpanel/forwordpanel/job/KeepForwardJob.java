@@ -37,7 +37,7 @@ public class KeepForwardJob {
     @Autowired
     UserPortForwardService userPortForwardService;
 
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/1 * * * ?")
     public void execute() {
         log.info(">>>>开始执行中转机重启检查任务");
         List<Server> serviceList = serverService.findListWithoutLogin();
