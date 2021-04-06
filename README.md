@@ -20,4 +20,4 @@ https://github.com/xiaoli123/forwordpanel/wiki
 ## 使用方式
 见wiki: https://github.com/xiaoli123/forwordpanel/wiki
 
-
+一键安装脚本： bash <(wget --no-check-certificate -qO- 'https://sh.xdmb.xyz/xiandan/xd.sh')
