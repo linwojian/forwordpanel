@@ -21,4 +21,5 @@ https://github.com/xiaoli123/forwordpanel/wiki
 见wiki: https://github.com/xiaoli123/forwordpanel/wiki
 
 一键安装脚本： bash <(wget --no-check-certificate -qO- 'https://sh.xdmb.xyz/xiandan/xd.sh')
-(初始用户名密码：admin/admin)
+
+使用步骤依次是: 添加服务器--> 维护中转端口 --> 给租户开通账号 --> 给租户分配端口 --> 租户登录设置转发
